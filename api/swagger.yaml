@@ -1,0 +1,2190 @@
+---
+swagger: "2.0"
+info:
+  version: "1.0"
+  title: "KcomApi to communicate with TrackerServer"
+host: "167.99.146.9:8082"
+basePath: "/api"
+schemes:
+- "http"
+consumes:
+- "application/json"
+produces:
+- "application/json"
+security:
+- basicAuth: []
+paths:
+  /commands:
+    get:
+      summary: "Fetch a list of Saved Commands"
+      description: "Without params, it returns a list of Drivers the user has access\
+        \ to"
+      operationId: "commandsGET"
+      parameters:
+      - name: "all"
+        in: "query"
+        description: "Can only be used by admins or managers to fetch all entities"
+        required: false
+        type: "boolean"
+      - name: "userId"
+        in: "query"
+        description: "Standard users can use this only with their own _userId_"
+        required: false
+        type: "integer"
+      - name: "deviceId"
+        in: "query"
+        description: "Standard users can use this only with _deviceId_s, they have\
+          \ access to"
+        required: false
+        type: "integer"
+      - name: "groupId"
+        in: "query"
+        description: "Standard users can use this only with _groupId_s, they have\
+          \ access to"
+        required: false
+        type: "integer"
+      - name: "refresh"
+        in: "query"
+        required: false
+        type: "boolean"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Command"
+      x-swagger-router-controller: "Default"
+    post:
+      summary: "Create a Saved Command"
+      operationId: "commandsPOST"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Command"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Command"
+      x-swagger-router-controller: "Default"
+  /commands/{id}:
+    put:
+      summary: "Update a Saved Command"
+      operationId: "commandsIdPUT"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "integer"
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Command"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Command"
+      x-swagger-router-controller: "Default"
+    delete:
+      summary: "Delete a Saved Command"
+      operationId: "commandsIdDELETE"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "integer"
+      responses:
+        "204":
+          description: "No Content"
+      x-swagger-router-controller: "Default"
+  /commands/send:
+    get:
+      summary: "Fetch a list of Saved Commands supported by Device at the moment"
+      description: "Return a list of saved commands linked to Device and its groups,\
+        \ filtered by current Device protocol support"
+      operationId: "commandsSendGET"
+      parameters:
+      - name: "deviceId"
+        in: "query"
+        description: "Standard users can use this only with _deviceId_s, they have\
+          \ access to"
+        required: false
+        type: "integer"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Command"
+        "400":
+          description: "Could happen when the user doesn't have permission for the\
+            \ device"
+      x-swagger-router-controller: "Default"
+    post:
+      summary: "Dispatch commands to device"
+      description: "Dispatch a new command or Saved Command if _body.id_ set"
+      operationId: "commandsSendPOST"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Command"
+      responses:
+        "200":
+          description: "Command sent"
+          schema:
+            $ref: "#/definitions/Command"
+        "202":
+          description: "Command queued"
+          schema:
+            $ref: "#/definitions/Command"
+        "400":
+          description: "Could happen when the user doesn't have permission or an incorrect\
+            \ command _type_ for the device"
+      x-swagger-router-controller: "Default"
+  /commands/types:
+    get:
+      summary: "Fetch a list of available Commands for the Device or all possible\
+        \ Commands if Device ommited"
+      operationId: "commandsTypesGET"
+      parameters:
+      - name: "deviceId"
+        in: "query"
+        description: "Internal device identifier. Only works if device has already\
+          \ reported some locations"
+        required: false
+        type: "integer"
+      - name: "protocol"
+        in: "query"
+        description: "Protocol name. Can be used instead of device id"
+        required: false
+        type: "string"
+      - name: "textChannel"
+        in: "query"
+        description: "When `true` return SMS commands. If not specified or `false`\
+          \ return data commands"
+        required: false
+        type: "boolean"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/CommandType"
+        "400":
+          description: "Could happen when trying to fetch from a device the user does\
+            \ not have permission"
+      x-swagger-router-controller: "Default"
+  /devices:
+    get:
+      summary: "Fetch a list of Devices"
+      description: "Without any params, returns a list of the user's devices"
+      operationId: "devicesGET"
+      parameters:
+      - name: "all"
+        in: "query"
+        description: "Can only be used by admins or managers to fetch all entities"
+        required: false
+        type: "boolean"
+      - name: "userId"
+        in: "query"
+        description: "Standard users can use this only with their own _userId_"
+        required: false
+        type: "integer"
+      - name: "id"
+        in: "query"
+        description: "To fetch one or more devices. Multiple params can be passed\
+          \ like `id=31&id=42`"
+        required: false
+        type: "integer"
+        collectionFormat: "multi"
+      - name: "uniqueId"
+        in: "query"
+        description: "To fetch one or more devices. Multiple params can be passed\
+          \ like `uniqueId=333331&uniqieId=44442`"
+        required: false
+        type: "string"
+        collectionFormat: "multi"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Device"
+        "400":
+          description: "No permission"
+      x-swagger-router-controller: "Default"
+    post:
+      summary: "Create a Device"
+      operationId: "devicesPOST"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Device"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Device"
+      x-swagger-router-controller: "Default"
+  /devices/{id}:
+    put:
+      summary: "Update a Device"
+      operationId: "devicesIdPUT"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "integer"
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Device"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Device"
+      x-swagger-router-controller: "Default"
+    delete:
+      summary: "Delete a Device"
+      operationId: "devicesIdDELETE"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "integer"
+      responses:
+        "204":
+          description: "No Content"
+      x-swagger-router-controller: "Default"
+  /devices/{id}/accumulators:
+    put:
+      summary: "Update total distance and hours of the Device"
+      operationId: "devicesIdAccumulatorsPUT"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "integer"
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/DeviceAccumulators"
+      responses:
+        "204":
+          description: "No Content"
+      x-swagger-router-controller: "Default"
+  /groups:
+    get:
+      summary: "Fetch a list of Groups"
+      description: "Without any params, returns a list of the Groups the user belongs\
+        \ to"
+      operationId: "groupsGET"
+      parameters:
+      - name: "all"
+        in: "query"
+        description: "Can only be used by admins or managers to fetch all entities"
+        required: false
+        type: "boolean"
+      - name: "userId"
+        in: "query"
+        description: "Standard users can use this only with their own _userId_"
+        required: false
+        type: "integer"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Group"
+      x-swagger-router-controller: "Default"
+    post:
+      summary: "Create a Group"
+      operationId: "groupsPOST"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Group"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Group"
+        "400":
+          description: "No permission"
+      x-swagger-router-controller: "Default"
+  /groups/{id}:
+    put:
+      summary: "Update a Group"
+      operationId: "groupsIdPUT"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "integer"
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Group"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Group"
+      x-swagger-router-controller: "Default"
+    delete:
+      summary: "Delete a Group"
+      operationId: "groupsIdDELETE"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "integer"
+      responses:
+        "204":
+          description: "No Content"
+      x-swagger-router-controller: "Default"
+  /permissions:
+    post:
+      summary: "Link an Object to another Object"
+      operationId: "permissionsPOST"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Permission"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Permission"
+        "400":
+          description: "No permission"
+      x-swagger-router-controller: "Default"
+    delete:
+      summary: "Unlink an Object from another Object"
+      operationId: "permissionsDELETE"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Permission"
+      responses:
+        "204":
+          description: "No Content"
+      x-swagger-router-controller: "Default"
+  /positions:
+    get:
+      summary: "Fetches a list of Positions"
+      description: "Without any params, it returns a list of last known positions\
+        \ for all the user's Devices. _from_ and _to_ fields are not required with\
+        \ _id_"
+      operationId: "positionsGET"
+      consumes:
+      - "application/json"
+      - "text/csv"
+      - "application/gpx+xml"
+      produces:
+      - "application/json"
+      - "text/csv"
+      - "application/gpx+xml"
+      parameters:
+      - name: "deviceId"
+        in: "query"
+        description: "_deviceId_ is optional, but requires the _from_ and _to_ parameters\
+          \ when used"
+        required: false
+        type: "integer"
+      - name: "from"
+        in: "query"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+        required: false
+        type: "string"
+        format: "date-time"
+      - name: "to"
+        in: "query"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+        required: false
+        type: "string"
+        format: "date-time"
+      - name: "id"
+        in: "query"
+        description: "To fetch one or more positions. Multiple params can be passed\
+          \ like `id=31&id=42`"
+        required: false
+        type: "integer"
+        collectionFormat: "multi"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Position"
+      x-swagger-router-controller: "Default"
+  /server:
+    get:
+      summary: "Fetch Server information"
+      operationId: "serverGET"
+      parameters: []
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Server"
+      x-swagger-router-controller: "Default"
+    put:
+      summary: "Update Server information"
+      operationId: "serverPUT"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Server"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Server"
+      x-swagger-router-controller: "Default"
+  /session:
+    get:
+      summary: "Fetch Session information"
+      operationId: "sessionGET"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      parameters:
+      - name: "token"
+        in: "query"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/User"
+        "404":
+          description: "Not Found"
+      x-swagger-router-controller: "Default"
+    post:
+      summary: "Create a new Session"
+      operationId: "sessionPOST"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      parameters:
+      - name: "email"
+        in: "formData"
+        required: true
+        type: "string"
+      - name: "password"
+        in: "formData"
+        required: true
+        type: "string"
+        format: "password"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/User"
+        "401":
+          description: "Unauthorized"
+      x-swagger-router-controller: "Default"
+    delete:
+      summary: "Close the Session"
+      operationId: "sessionDELETE"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      parameters: []
+      responses:
+        "204":
+          description: "No Content"
+      x-swagger-router-controller: "Default"
+  /users:
+    get:
+      summary: "Fetch a list of Users"
+      operationId: "usersGET"
+      parameters:
+      - name: "userId"
+        in: "query"
+        description: "Can only be used by admin or manager users"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/User"
+        "400":
+          description: "No Permission"
+      x-swagger-router-controller: "Default"
+    post:
+      summary: "Create a User"
+      operationId: "usersPOST"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/User"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/User"
+      x-swagger-router-controller: "Default"
+  /users/{id}:
+    put:
+      summary: "Update a User"
+      operationId: "usersIdPUT"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "integer"
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/User"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/User"
+      x-swagger-router-controller: "Default"
+    delete:
+      summary: "Delete a User"
+      operationId: "usersIdDELETE"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "integer"
+      responses:
+        "204":
+          description: "No Content"
+      x-swagger-router-controller: "Default"
+  /notifications:
+    get:
+      summary: "Fetch a list of Notifications"
+      description: "Without params, it returns a list of Notifications the user has\
+        \ access to"
+      operationId: "notificationsGET"
+      parameters:
+      - name: "all"
+        in: "query"
+        description: "Can only be used by admins or managers to fetch all entities"
+        required: false
+        type: "boolean"
+      - name: "userId"
+        in: "query"
+        description: "Standard users can use this only with their own _userId_"
+        required: false
+        type: "integer"
+      - name: "deviceId"
+        in: "query"
+        description: "Standard users can use this only with _deviceId_s, they have\
+          \ access to"
+        required: false
+        type: "integer"
+      - name: "groupId"
+        in: "query"
+        description: "Standard users can use this only with _groupId_s, they have\
+          \ access to"
+        required: false
+        type: "integer"
+      - name: "refresh"
+        in: "query"
+        required: false
+        type: "boolean"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Notification"
+      x-swagger-router-controller: "Default"
+    post:
+      summary: "Create a Notification"
+      operationId: "notificationsPOST"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Notification"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Notification"
+      x-swagger-router-controller: "Default"
+  /notifications/{id}:
+    put:
+      summary: "Update a Notification"
+      operationId: "notificationsIdPUT"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "integer"
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Notification"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Notification"
+      x-swagger-router-controller: "Default"
+    delete:
+      summary: "Delete a Notification"
+      operationId: "notificationsIdDELETE"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "integer"
+      responses:
+        "204":
+          description: "No Content"
+      x-swagger-router-controller: "Default"
+  /notifications/types:
+    get:
+      summary: "Fetch a list of available Notification types"
+      operationId: "notificationsTypesGET"
+      parameters: []
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/NotificationType"
+      x-swagger-router-controller: "Default"
+  /notifications/test:
+    post:
+      summary: "Send test notification to current user via Email and SMS"
+      operationId: "notificationsTestPOST"
+      parameters: []
+      responses:
+        "204":
+          description: "Successful sending"
+        "400":
+          description: "Could happen if sending has failed"
+      x-swagger-router-controller: "Default"
+  /geofences:
+    get:
+      summary: "Fetch a list of Geofences"
+      description: "Without params, it returns a list of Geofences the user has access\
+        \ to"
+      operationId: "geofencesGET"
+      parameters:
+      - name: "all"
+        in: "query"
+        description: "Can only be used by admins or managers to fetch all entities"
+        required: false
+        type: "boolean"
+      - name: "userId"
+        in: "query"
+        description: "Standard users can use this only with their own _userId_"
+        required: false
+        type: "integer"
+      - name: "deviceId"
+        in: "query"
+        description: "Standard users can use this only with _deviceId_s, they have\
+          \ access to"
+        required: false
+        type: "integer"
+      - name: "groupId"
+        in: "query"
+        description: "Standard users can use this only with _groupId_s, they have\
+          \ access to"
+        required: false
+        type: "integer"
+      - name: "refresh"
+        in: "query"
+        required: false
+        type: "boolean"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Geofence"
+      x-swagger-router-controller: "Default"
+    post:
+      summary: "Create a Geofence"
+      operationId: "geofencesPOST"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Geofence"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Geofence"
+      x-swagger-router-controller: "Default"
+  /geofences/{id}:
+    put:
+      summary: "Update a Geofence"
+      operationId: "geofencesIdPUT"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "integer"
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Geofence"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Geofence"
+      x-swagger-router-controller: "Default"
+    delete:
+      summary: "Delete a Geofence"
+      operationId: "geofencesIdDELETE"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "integer"
+      responses:
+        "204":
+          description: "No Content"
+      x-swagger-router-controller: "Default"
+  /events/{id}:
+    get:
+      operationId: "eventsIdGET"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "integer"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Event"
+      x-swagger-router-controller: "Default"
+  /reports/route:
+    get:
+      summary: "Fetch a list of Positions within the time period for the Devices or\
+        \ Groups"
+      description: "At least one _deviceId_ or one _groupId_ must be passed"
+      operationId: "reportsRouteGET"
+      consumes:
+      - "application/json"
+      - "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      produces:
+      - "application/json"
+      - "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      parameters:
+      - name: "deviceId"
+        in: "query"
+        required: false
+        type: "array"
+        items:
+          type: "integer"
+        collectionFormat: "multi"
+      - name: "groupId"
+        in: "query"
+        required: false
+        type: "array"
+        items:
+          type: "integer"
+        collectionFormat: "multi"
+      - name: "from"
+        in: "query"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+        required: true
+        type: "string"
+        format: "date-time"
+      - name: "to"
+        in: "query"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+        required: true
+        type: "string"
+        format: "date-time"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Position"
+      x-swagger-router-controller: "Default"
+  /reports/events:
+    get:
+      summary: "Fetch a list of Events within the time period for the Devices or Groups"
+      description: "At least one _deviceId_ or one _groupId_ must be passed"
+      operationId: "reportsEventsGET"
+      consumes:
+      - "application/json"
+      - "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      produces:
+      - "application/json"
+      - "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      parameters:
+      - name: "deviceId"
+        in: "query"
+        required: false
+        type: "array"
+        items:
+          type: "integer"
+        collectionFormat: "multi"
+      - name: "groupId"
+        in: "query"
+        required: false
+        type: "array"
+        items:
+          type: "integer"
+        collectionFormat: "multi"
+      - name: "type"
+        in: "query"
+        description: "% can be used to return events of all types"
+        required: false
+        type: "array"
+        items:
+          type: "string"
+        collectionFormat: "multi"
+      - name: "from"
+        in: "query"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+        required: true
+        type: "string"
+        format: "date-time"
+      - name: "to"
+        in: "query"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+        required: true
+        type: "string"
+        format: "date-time"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Event"
+      x-swagger-router-controller: "Default"
+  /reports/summary:
+    get:
+      summary: "Fetch a list of ReportSummary within the time period for the Devices\
+        \ or Groups"
+      description: "At least one _deviceId_ or one _groupId_ must be passed"
+      operationId: "reportsSummaryGET"
+      consumes:
+      - "application/json"
+      - "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      produces:
+      - "application/json"
+      - "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      parameters:
+      - name: "deviceId"
+        in: "query"
+        required: false
+        type: "array"
+        items:
+          type: "integer"
+        collectionFormat: "multi"
+      - name: "groupId"
+        in: "query"
+        required: false
+        type: "array"
+        items:
+          type: "integer"
+        collectionFormat: "multi"
+      - name: "from"
+        in: "query"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+        required: true
+        type: "string"
+        format: "date-time"
+      - name: "to"
+        in: "query"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+        required: true
+        type: "string"
+        format: "date-time"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/ReportSummary"
+      x-swagger-router-controller: "Default"
+  /reports/trips:
+    get:
+      summary: "Fetch a list of ReportTrips within the time period for the Devices\
+        \ or Groups"
+      description: "At least one _deviceId_ or one _groupId_ must be passed"
+      operationId: "reportsTripsGET"
+      consumes:
+      - "application/json"
+      - "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      produces:
+      - "application/json"
+      - "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      parameters:
+      - name: "deviceId"
+        in: "query"
+        required: false
+        type: "array"
+        items:
+          type: "integer"
+        collectionFormat: "multi"
+      - name: "groupId"
+        in: "query"
+        required: false
+        type: "array"
+        items:
+          type: "integer"
+        collectionFormat: "multi"
+      - name: "from"
+        in: "query"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+        required: true
+        type: "string"
+        format: "date-time"
+      - name: "to"
+        in: "query"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+        required: true
+        type: "string"
+        format: "date-time"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/ReportTrips"
+      x-swagger-router-controller: "Default"
+  /reports/stops:
+    get:
+      summary: "Fetch a list of ReportStops within the time period for the Devices\
+        \ or Groups"
+      description: "At least one _deviceId_ or one _groupId_ must be passed"
+      operationId: "reportsStopsGET"
+      consumes:
+      - "application/json"
+      - "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      produces:
+      - "application/json"
+      - "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      parameters:
+      - name: "deviceId"
+        in: "query"
+        required: false
+        type: "array"
+        items:
+          type: "integer"
+        collectionFormat: "multi"
+      - name: "groupId"
+        in: "query"
+        required: false
+        type: "array"
+        items:
+          type: "integer"
+        collectionFormat: "multi"
+      - name: "from"
+        in: "query"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+        required: true
+        type: "string"
+        format: "date-time"
+      - name: "to"
+        in: "query"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+        required: true
+        type: "string"
+        format: "date-time"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/ReportStops"
+      x-swagger-router-controller: "Default"
+  /statistics:
+    get:
+      summary: "Fetch server Statistics"
+      operationId: "statisticsGET"
+      parameters:
+      - name: "from"
+        in: "query"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+        required: true
+        type: "string"
+        format: "date-time"
+      - name: "to"
+        in: "query"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+        required: true
+        type: "string"
+        format: "date-time"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Statistics"
+      x-swagger-router-controller: "Default"
+  /calendars:
+    get:
+      summary: "Fetch a list of Calendars"
+      description: "Without params, it returns a list of Calendars the user has access\
+        \ to"
+      operationId: "calendarsGET"
+      parameters:
+      - name: "all"
+        in: "query"
+        description: "Can only be used by admins or managers to fetch all entities"
+        required: false
+        type: "boolean"
+      - name: "userId"
+        in: "query"
+        description: "Standard users can use this only with their own _userId_"
+        required: false
+        type: "integer"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Calendar"
+      x-swagger-router-controller: "Default"
+    post:
+      summary: "Create a Calendar"
+      operationId: "calendarsPOST"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Calendar"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Calendar"
+      x-swagger-router-controller: "Default"
+  /calendars/{id}:
+    put:
+      summary: "Update a Calendar"
+      operationId: "calendarsIdPUT"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "integer"
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Calendar"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Calendar"
+      x-swagger-router-controller: "Default"
+    delete:
+      summary: "Delete a Calendar"
+      operationId: "calendarsIdDELETE"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "integer"
+      responses:
+        "204":
+          description: "No Content"
+      x-swagger-router-controller: "Default"
+  /attributes/computed:
+    get:
+      summary: "Fetch a list of Attributes"
+      description: "Without params, it returns a list of Attributes the user has access\
+        \ to"
+      operationId: "attributesComputedGET"
+      parameters:
+      - name: "all"
+        in: "query"
+        description: "Can only be used by admins or managers to fetch all entities"
+        required: false
+        type: "boolean"
+      - name: "userId"
+        in: "query"
+        description: "Standard users can use this only with their own _userId_"
+        required: false
+        type: "integer"
+      - name: "deviceId"
+        in: "query"
+        description: "Standard users can use this only with _deviceId_s, they have\
+          \ access to"
+        required: false
+        type: "integer"
+      - name: "groupId"
+        in: "query"
+        description: "Standard users can use this only with _groupId_s, they have\
+          \ access to"
+        required: false
+        type: "integer"
+      - name: "refresh"
+        in: "query"
+        required: false
+        type: "boolean"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Attribute"
+      x-swagger-router-controller: "Default"
+    post:
+      summary: "Create an Attribute"
+      operationId: "attributesComputedPOST"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Attribute"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Attribute"
+      x-swagger-router-controller: "Default"
+  /attributes/computed/{id}:
+    put:
+      summary: "Update an Attribute"
+      operationId: "attributesComputedIdPUT"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "integer"
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Attribute"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Attribute"
+      x-swagger-router-controller: "Default"
+    delete:
+      summary: "Delete an Attribute"
+      operationId: "attributesComputedIdDELETE"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "integer"
+      responses:
+        "204":
+          description: "No Content"
+      x-swagger-router-controller: "Default"
+  /drivers:
+    get:
+      summary: "Fetch a list of Drivers"
+      description: "Without params, it returns a list of Drivers the user has access\
+        \ to"
+      operationId: "driversGET"
+      parameters:
+      - name: "all"
+        in: "query"
+        description: "Can only be used by admins or managers to fetch all entities"
+        required: false
+        type: "boolean"
+      - name: "userId"
+        in: "query"
+        description: "Standard users can use this only with their own _userId_"
+        required: false
+        type: "integer"
+      - name: "deviceId"
+        in: "query"
+        description: "Standard users can use this only with _deviceId_s, they have\
+          \ access to"
+        required: false
+        type: "integer"
+      - name: "groupId"
+        in: "query"
+        description: "Standard users can use this only with _groupId_s, they have\
+          \ access to"
+        required: false
+        type: "integer"
+      - name: "refresh"
+        in: "query"
+        required: false
+        type: "boolean"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Driver"
+      x-swagger-router-controller: "Default"
+    post:
+      summary: "Create a Driver"
+      operationId: "driversPOST"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Driver"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Driver"
+      x-swagger-router-controller: "Default"
+  /drivers/{id}:
+    put:
+      summary: "Update a Driver"
+      operationId: "driversIdPUT"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "integer"
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Driver"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Driver"
+      x-swagger-router-controller: "Default"
+    delete:
+      summary: "Delete a Driver"
+      operationId: "driversIdDELETE"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "integer"
+      responses:
+        "204":
+          description: "No Content"
+      x-swagger-router-controller: "Default"
+  /maintenance:
+    get:
+      summary: "Fetch a list of Maintenance"
+      description: "Without params, it returns a list of Maintenance the user has\
+        \ access to"
+      operationId: "maintenanceGET"
+      parameters:
+      - name: "all"
+        in: "query"
+        description: "Can only be used by admins or managers to fetch all entities"
+        required: false
+        type: "boolean"
+      - name: "userId"
+        in: "query"
+        description: "Standard users can use this only with their own _userId_"
+        required: false
+        type: "integer"
+      - name: "deviceId"
+        in: "query"
+        description: "Standard users can use this only with _deviceId_s, they have\
+          \ access to"
+        required: false
+        type: "integer"
+      - name: "groupId"
+        in: "query"
+        description: "Standard users can use this only with _groupId_s, they have\
+          \ access to"
+        required: false
+        type: "integer"
+      - name: "refresh"
+        in: "query"
+        required: false
+        type: "boolean"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Maintenance"
+      x-swagger-router-controller: "Default"
+    post:
+      summary: "Create a Maintenance"
+      operationId: "maintenancePOST"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Maintenance"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Maintenance"
+      x-swagger-router-controller: "Default"
+  /maintenance/{id}:
+    put:
+      summary: "Update a Maintenance"
+      operationId: "maintenanceIdPUT"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "integer"
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Maintenance"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Maintenance"
+      x-swagger-router-controller: "Default"
+    delete:
+      summary: "Delete a Maintenance"
+      operationId: "maintenanceIdDELETE"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "integer"
+      responses:
+        "204":
+          description: "No Content"
+      x-swagger-router-controller: "Default"
+securityDefinitions:
+  basicAuth:
+    description: "Basic HTTP authorization with _email_ and _password_"
+    type: "basic"
+definitions:
+  Position:
+    properties:
+      id:
+        type: "integer"
+      deviceId:
+        type: "integer"
+      protocol:
+        type: "string"
+      deviceTime:
+        type: "string"
+        format: "date-time"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+      fixTime:
+        type: "string"
+        format: "date-time"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+      serverTime:
+        type: "string"
+        format: "date-time"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+      outdated:
+        type: "boolean"
+      valid:
+        type: "boolean"
+      latitude:
+        type: "number"
+      longitude:
+        type: "number"
+      altitude:
+        type: "number"
+      speed:
+        type: "number"
+        description: "in knots"
+      course:
+        type: "number"
+      address:
+        type: "string"
+      accuracy:
+        type: "number"
+      network:
+        type: "object"
+        properties: {}
+      attributes:
+        type: "object"
+        properties: {}
+    example:
+      altitude: 5.63737665663332876420099637471139430999755859375
+      address: "address"
+      latitude: 1.46581298050294517310021547018550336360931396484375
+      fixTime: "2000-01-23T04:56:07.000+00:00"
+      accuracy: 9.301444243932575517419536481611430644989013671875
+      deviceTime: "2000-01-23T04:56:07.000+00:00"
+      deviceId: 6
+      speed: 2.3021358869347654518833223846741020679473876953125
+      network: "{}"
+      valid: true
+      protocol: "protocol"
+      outdated: true
+      course: 7.061401241503109105224211816675961017608642578125
+      serverTime: "2000-01-23T04:56:07.000+00:00"
+      attributes: "{}"
+      id: 0
+      longitude: 5.962133916683182377482808078639209270477294921875
+  User:
+    properties:
+      id:
+        type: "integer"
+      name:
+        type: "string"
+      email:
+        type: "string"
+      readonly:
+        type: "boolean"
+      administrator:
+        type: "boolean"
+      map:
+        type: "string"
+      latitude:
+        type: "number"
+      longitude:
+        type: "number"
+      zoom:
+        type: "integer"
+      password:
+        type: "string"
+      twelveHourFormat:
+        type: "boolean"
+      coordinateFormat:
+        type: "string"
+      disabled:
+        type: "boolean"
+      expirationTime:
+        type: "string"
+        format: "date-time"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+      deviceLimit:
+        type: "integer"
+      userLimit:
+        type: "integer"
+      deviceReadonly:
+        type: "boolean"
+      limitCommands:
+        type: "boolean"
+      poiLayer:
+        type: "string"
+      token:
+        type: "string"
+      attributes:
+        type: "object"
+        properties: {}
+    example:
+      deviceReadonly: true
+      poiLayer: "poiLayer"
+      latitude: 6.02745618307040320615897144307382404804229736328125
+      zoom: 5
+      coordinateFormat: "coordinateFormat"
+      token: "token"
+      administrator: true
+      password: "password"
+      readonly: true
+      expirationTime: "2000-01-23T04:56:07.000+00:00"
+      limitCommands: true
+      twelveHourFormat: true
+      name: "name"
+      disabled: true
+      attributes: "{}"
+      id: 0
+      userLimit: 2
+      map: "map"
+      deviceLimit: 5
+      email: "email"
+      longitude: 1.46581298050294517310021547018550336360931396484375
+  Server:
+    properties:
+      id:
+        type: "integer"
+      registration:
+        type: "boolean"
+      readonly:
+        type: "boolean"
+      deviceReadonly:
+        type: "boolean"
+      limitCommands:
+        type: "boolean"
+      map:
+        type: "string"
+      bingKey:
+        type: "string"
+      mapUrl:
+        type: "string"
+      poiLayer:
+        type: "string"
+      latitude:
+        type: "number"
+      longitude:
+        type: "number"
+      zoom:
+        type: "integer"
+      twelveHourFormat:
+        type: "boolean"
+      version:
+        type: "string"
+      forceSettings:
+        type: "boolean"
+      coordinateFormat:
+        type: "string"
+      attributes:
+        type: "object"
+        properties: {}
+    example:
+      deviceReadonly: true
+      poiLayer: "poiLayer"
+      latitude: 6.02745618307040320615897144307382404804229736328125
+      zoom: 5
+      version: "version"
+      coordinateFormat: "coordinateFormat"
+      bingKey: "bingKey"
+      readonly: true
+      limitCommands: true
+      twelveHourFormat: true
+      mapUrl: "mapUrl"
+      forceSettings: true
+      registration: true
+      attributes: "{}"
+      id: 0
+      map: "map"
+      longitude: 1.46581298050294517310021547018550336360931396484375
+  Command:
+    properties:
+      id:
+        type: "integer"
+      deviceId:
+        type: "integer"
+      description:
+        type: "string"
+      type:
+        type: "string"
+      attributes:
+        type: "object"
+        properties: {}
+    example:
+      description: "description"
+      attributes: "{}"
+      id: 0
+      type: "type"
+      deviceId: 6
+  Device:
+    properties:
+      id:
+        type: "integer"
+      name:
+        type: "string"
+      uniqueId:
+        type: "string"
+      status:
+        type: "string"
+      disabled:
+        type: "boolean"
+      lastUpdate:
+        type: "string"
+        format: "date-time"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+      positionId:
+        type: "integer"
+      groupId:
+        type: "integer"
+      phone:
+        type: "string"
+      model:
+        type: "string"
+      contact:
+        type: "string"
+      category:
+        type: "string"
+      geofenceIds:
+        type: "array"
+        items:
+          type: "integer"
+      attributes:
+        type: "object"
+        properties: {}
+    example:
+      groupId: 1
+      positionId: 6
+      phone: "phone"
+      geofenceIds:
+      - 5
+      - 5
+      lastUpdate: "2000-01-23T04:56:07.000+00:00"
+      contact: "contact"
+      name: "name"
+      disabled: true
+      model: "model"
+      attributes: "{}"
+      id: 0
+      category: "category"
+      uniqueId: "uniqueId"
+      status: "status"
+  Group:
+    properties:
+      id:
+        type: "integer"
+      name:
+        type: "string"
+      groupId:
+        type: "integer"
+      attributes:
+        type: "object"
+        properties: {}
+    example:
+      groupId: 6
+      name: "name"
+      attributes: "{}"
+      id: 0
+  Permission:
+    properties:
+      userId:
+        type: "integer"
+        description: "User Id, can be only first parameter"
+      deviceId:
+        type: "integer"
+        description: "Device Id, can be first parameter or second only in combination\
+          \ with userId"
+      groupId:
+        type: "integer"
+        description: "Group Id, can be first parameter or second only in combination\
+          \ with userId"
+      geofenceId:
+        type: "integer"
+        description: "Geofence Id, can be second parameter only"
+      calendarId:
+        type: "integer"
+        description: "Calendar Id, can be second parameter only and only in combination\
+          \ with userId"
+      attributeId:
+        type: "integer"
+        description: "Computed Attribute Id, can be second parameter only"
+      driverId:
+        type: "integer"
+        description: "Driver Id, can be second parameter only"
+      managedUserId:
+        type: "integer"
+        description: "User Id, can be second parameter only and only in combination\
+          \ with userId"
+    description: "This is a permission map that contain two object indexes. It is\
+      \ used to link/unlink objects. Order is important. Example: { deviceId:8, geofenceId:\
+      \ 16 }"
+    example:
+      attributeId: 2
+      calendarId: 5
+      driverId: 7
+      managedUserId: 9
+      groupId: 1
+      geofenceId: 5
+      userId: 0
+      deviceId: 6
+  CommandType:
+    properties:
+      type:
+        type: "string"
+    example:
+      type: "type"
+  Geofence:
+    properties:
+      id:
+        type: "integer"
+      name:
+        type: "string"
+      description:
+        type: "string"
+      area:
+        type: "string"
+      calendarId:
+        type: "integer"
+      attributes:
+        type: "object"
+        properties: {}
+    example:
+      area: "area"
+      calendarId: 6
+      name: "name"
+      description: "description"
+      attributes: "{}"
+      id: 0
+  Notification:
+    properties:
+      id:
+        type: "integer"
+      type:
+        type: "string"
+      always:
+        type: "boolean"
+      web:
+        type: "boolean"
+      mail:
+        type: "boolean"
+      sms:
+        type: "boolean"
+      calendarId:
+        type: "integer"
+      attributes:
+        type: "object"
+        properties: {}
+    example:
+      always: true
+      mail: true
+      calendarId: 6
+      web: true
+      sms: true
+      attributes: "{}"
+      id: 0
+      type: "type"
+  NotificationType:
+    properties:
+      type:
+        type: "string"
+    example:
+      type: "type"
+  Event:
+    properties:
+      id:
+        type: "integer"
+      type:
+        type: "string"
+      serverTime:
+        type: "string"
+        format: "date-time"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+      deviceId:
+        type: "integer"
+      positionId:
+        type: "integer"
+      geofenceId:
+        type: "integer"
+      maintenanceId:
+        type: "integer"
+      attributes:
+        type: "object"
+        properties: {}
+    example:
+      maintenanceId: 5
+      positionId: 1
+      serverTime: "2000-01-23T04:56:07.000+00:00"
+      attributes: "{}"
+      id: 0
+      geofenceId: 5
+      type: "type"
+      deviceId: 6
+  ReportSummary:
+    properties:
+      deviceId:
+        type: "integer"
+      deviceName:
+        type: "string"
+      maxSpeed:
+        type: "number"
+        description: "in knots"
+      averageSpeed:
+        type: "number"
+        description: "in knots"
+      distance:
+        type: "number"
+        description: "in meters"
+      spentFuel:
+        type: "number"
+        description: "in liters"
+      engineHours:
+        type: "integer"
+    example:
+      engineHours: 2
+      distance: 5.962133916683182377482808078639209270477294921875
+      spentFuel: 5.63737665663332876420099637471139430999755859375
+      averageSpeed: 1.46581298050294517310021547018550336360931396484375
+      maxSpeed: 6.02745618307040320615897144307382404804229736328125
+      deviceId: 0
+      deviceName: "deviceName"
+  ReportTrips:
+    properties:
+      deviceId:
+        type: "integer"
+      deviceName:
+        type: "string"
+      maxSpeed:
+        type: "number"
+        description: "in knots"
+      averageSpeed:
+        type: "number"
+        description: "in knots"
+      distance:
+        type: "number"
+        description: "in meters"
+      spentFuel:
+        type: "number"
+        description: "in liters"
+      duration:
+        type: "integer"
+      startTime:
+        type: "string"
+        format: "date-time"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+      startAddress:
+        type: "string"
+      startLat:
+        type: "number"
+      startLon:
+        type: "number"
+      endTime:
+        type: "string"
+        format: "date-time"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+      endAddress:
+        type: "string"
+      endLat:
+        type: "number"
+      endLon:
+        type: "number"
+      driverUniqueId:
+        type: "integer"
+      driverName:
+        type: "string"
+    example:
+      startLat: 7.061401241503109105224211816675961017608642578125
+      distance: 5.962133916683182377482808078639209270477294921875
+      startAddress: "startAddress"
+      endLon: 2.027123023002321833274663731572218239307403564453125
+      averageSpeed: 1.46581298050294517310021547018550336360931396484375
+      maxSpeed: 6.02745618307040320615897144307382404804229736328125
+      deviceId: 0
+      deviceName: "deviceName"
+      duration: 2
+      endLat: 3.61607674925191080461672754609026014804840087890625
+      spentFuel: 5.63737665663332876420099637471139430999755859375
+      startLon: 9.301444243932575517419536481611430644989013671875
+      driverUniqueId: 4
+      startTime: "2000-01-23T04:56:07.000+00:00"
+      driverName: "driverName"
+      endTime: "2000-01-23T04:56:07.000+00:00"
+      endAddress: "endAddress"
+  ReportStops:
+    properties:
+      deviceId:
+        type: "integer"
+      deviceName:
+        type: "string"
+      duration:
+        type: "integer"
+      startTime:
+        type: "string"
+        format: "date-time"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+      address:
+        type: "string"
+      lat:
+        type: "number"
+      lon:
+        type: "number"
+      endTime:
+        type: "string"
+        format: "date-time"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+      spentFuel:
+        type: "number"
+        description: "in liters"
+      engineHours:
+        type: "integer"
+    example:
+      duration: 6
+      address: "address"
+      engineHours: 2
+      spentFuel: 5.63737665663332876420099637471139430999755859375
+      startTime: "2000-01-23T04:56:07.000+00:00"
+      lon: 5.962133916683182377482808078639209270477294921875
+      endTime: "2000-01-23T04:56:07.000+00:00"
+      deviceId: 0
+      deviceName: "deviceName"
+      lat: 1.46581298050294517310021547018550336360931396484375
+  Statistics:
+    properties:
+      captureTime:
+        type: "string"
+        format: "date-time"
+        description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+      activeUsers:
+        type: "integer"
+      activeDevices:
+        type: "integer"
+      requests:
+        type: "integer"
+      messagesReceived:
+        type: "integer"
+      messagesStored:
+        type: "integer"
+    example:
+      captureTime: "2000-01-23T04:56:07.000+00:00"
+      messagesReceived: 5
+      activeUsers: 0
+      requests: 1
+      activeDevices: 6
+      messagesStored: 5
+  DeviceAccumulators:
+    properties:
+      deviceId:
+        type: "integer"
+      totalDistance:
+        type: "number"
+        description: "in meters"
+      hours:
+        type: "number"
+    example:
+      hours: 1.46581298050294517310021547018550336360931396484375
+      totalDistance: 6.02745618307040320615897144307382404804229736328125
+      deviceId: 0
+  Calendar:
+    properties:
+      id:
+        type: "integer"
+      name:
+        type: "string"
+      data:
+        type: "string"
+        description: "base64 encoded in iCalendar format"
+      attributes:
+        type: "object"
+        properties: {}
+    example:
+      data: "data"
+      name: "name"
+      attributes: "{}"
+      id: 0
+  Attribute:
+    properties:
+      id:
+        type: "integer"
+      description:
+        type: "string"
+      attribute:
+        type: "string"
+      expression:
+        type: "string"
+      type:
+        type: "string"
+        description: "String|Number|Boolean"
+    example:
+      expression: "expression"
+      description: "description"
+      id: 0
+      attribute: "attribute"
+      type: "type"
+  Driver:
+    properties:
+      id:
+        type: "integer"
+      name:
+        type: "string"
+      uniqueId:
+        type: "string"
+      attributes:
+        type: "object"
+        properties: {}
+    example:
+      name: "name"
+      attributes: "{}"
+      id: 0
+      uniqueId: "uniqueId"
+  Maintenance:
+    properties:
+      id:
+        type: "integer"
+      name:
+        type: "string"
+      type:
+        type: "string"
+      start:
+        type: "number"
+      period:
+        type: "number"
+      attributes:
+        type: "object"
+        properties: {}
+    example:
+      period: 1.46581298050294517310021547018550336360931396484375
+      name: "name"
+      start: 6.02745618307040320615897144307382404804229736328125
+      attributes: "{}"
+      id: 0
+      type: "type"
+parameters:
+  entityId:
+    name: "id"
+    in: "path"
+    required: true
+    type: "integer"
+  all:
+    name: "all"
+    in: "query"
+    description: "Can only be used by admins or managers to fetch all entities"
+    required: false
+    type: "boolean"
+  refresh:
+    name: "refresh"
+    in: "query"
+    required: false
+    type: "boolean"
+  userId:
+    name: "userId"
+    in: "query"
+    description: "Standard users can use this only with their own _userId_"
+    required: false
+    type: "integer"
+  deviceId:
+    name: "deviceId"
+    in: "query"
+    description: "Standard users can use this only with _deviceId_s, they have access\
+      \ to"
+    required: false
+    type: "integer"
+  groupId:
+    name: "groupId"
+    in: "query"
+    description: "Standard users can use this only with _groupId_s, they have access\
+      \ to"
+    required: false
+    type: "integer"
+  Device:
+    in: "body"
+    name: "body"
+    required: true
+    schema:
+      $ref: "#/definitions/Device"
+  Permission:
+    in: "body"
+    name: "body"
+    required: true
+    schema:
+      $ref: "#/definitions/Permission"
+  Group:
+    in: "body"
+    name: "body"
+    required: true
+    schema:
+      $ref: "#/definitions/Group"
+  User:
+    in: "body"
+    name: "body"
+    required: true
+    schema:
+      $ref: "#/definitions/User"
+  Geofence:
+    in: "body"
+    name: "body"
+    required: true
+    schema:
+      $ref: "#/definitions/Geofence"
+  Calendar:
+    in: "body"
+    name: "body"
+    required: true
+    schema:
+      $ref: "#/definitions/Calendar"
+  Attribute:
+    in: "body"
+    name: "body"
+    required: true
+    schema:
+      $ref: "#/definitions/Attribute"
+  Driver:
+    in: "body"
+    name: "body"
+    required: true
+    schema:
+      $ref: "#/definitions/Driver"
+  Command:
+    in: "body"
+    name: "body"
+    required: true
+    schema:
+      $ref: "#/definitions/Command"
+  Notification:
+    in: "body"
+    name: "body"
+    required: true
+    schema:
+      $ref: "#/definitions/Notification"
+  Maintenance:
+    in: "body"
+    name: "body"
+    required: true
+    schema:
+      $ref: "#/definitions/Maintenance"
+  deviceIdArray:
+    name: "deviceId"
+    in: "query"
+    required: false
+    type: "array"
+    items:
+      type: "integer"
+    collectionFormat: "multi"
+  groupIdArray:
+    name: "groupId"
+    in: "query"
+    required: false
+    type: "array"
+    items:
+      type: "integer"
+    collectionFormat: "multi"
+  fromTime:
+    name: "from"
+    in: "query"
+    description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+    required: true
+    type: "string"
+    format: "date-time"
+  toTime:
+    name: "to"
+    in: "query"
+    description: "in IS0 8601 format. eg. `1963-11-22T18:30:00Z`"
+    required: true
+    type: "string"
+    format: "date-time"
